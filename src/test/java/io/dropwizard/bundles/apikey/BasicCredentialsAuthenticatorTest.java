@@ -22,24 +22,22 @@ public class BasicCredentialsAuthenticatorTest {
 
   @Test
   public void testValidCredentials() throws AuthenticationException {
-    ApiKey expected = mock(ApiKey.class);
-    when(expected.getSecret()).thenReturn("secret");
-    when(provider.get("username")).thenReturn(expected);
+    ApiKey key = newKey("username", "secret");
+    when(provider.get("username")).thenReturn(key);
 
     BasicCredentials credentials = new BasicCredentials("username", "secret");
-    Optional<ApiKey> actual = auth.authenticate(credentials);
+    Optional<String> actual = auth.authenticate(credentials);
     assertTrue(actual.isPresent());
-    assertEquals(expected, actual.get());
+    assertEquals("username", actual.get());
   }
 
   @Test
   public void testInvalidCredentials() throws AuthenticationException {
-    ApiKey expected = mock(ApiKey.class);
-    when(expected.getSecret()).thenReturn("not-a-secret");
-    when(provider.get("username")).thenReturn(expected);
+    ApiKey key = newKey("username", "not-a-secret");
+    when(provider.get("username")).thenReturn(key);
 
     BasicCredentials credentials = new BasicCredentials("username", "secret");
-    Optional<ApiKey> actual = auth.authenticate(credentials);
+    Optional<String> actual = auth.authenticate(credentials);
     assertFalse(actual.isPresent());
   }
 
@@ -48,7 +46,15 @@ public class BasicCredentialsAuthenticatorTest {
     when(provider.get("username")).thenReturn(null);
 
     BasicCredentials credentials = new BasicCredentials("username", "secret");
-    Optional<ApiKey> actual = auth.authenticate(credentials);
+    Optional<String> actual = auth.authenticate(credentials);
     assertFalse(actual.isPresent());
+  }
+
+  private ApiKey newKey(String username, String secret) {
+    ApiKey key = mock(ApiKey.class);
+    when(key.getUsername()).thenReturn(username);
+    when(key.getSecret()).thenReturn(secret);
+
+    return key;
   }
 }
