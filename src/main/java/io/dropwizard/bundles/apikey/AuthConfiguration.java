@@ -14,7 +14,7 @@ public class AuthConfiguration {
   private final Map<String, ApiKey> keys;
 
   @JsonCreator
-  AuthConfiguration(@JsonProperty("cacheSpec") String cacheSpec,
+  AuthConfiguration(@JsonProperty("cache-spec") String cacheSpec,
                     @JsonProperty("realm") String realm,
                     @JsonProperty("keys") Map<String, String> keys) {
     checkNotNull(cacheSpec);
