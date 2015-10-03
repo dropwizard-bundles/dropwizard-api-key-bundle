@@ -10,7 +10,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 /**
  * An Authenticator that converts HTTP basic authentication credentials into an API key.
  */
-public class BasicCredentialsAuthenticator implements Authenticator<BasicCredentials, ApiKey> {
+public class BasicCredentialsAuthenticator implements Authenticator<BasicCredentials, String> {
   private final ApiKeyProvider provider;
 
   BasicCredentialsAuthenticator(ApiKeyProvider provider) {
@@ -18,7 +18,7 @@ public class BasicCredentialsAuthenticator implements Authenticator<BasicCredent
   }
 
   @Override
-  public Optional<ApiKey> authenticate(BasicCredentials credentials)
+  public Optional<String> authenticate(BasicCredentials credentials)
       throws AuthenticationException {
     checkNotNull(credentials);
 
@@ -34,6 +34,6 @@ public class BasicCredentialsAuthenticator implements Authenticator<BasicCredent
       return Optional.absent();
     }
 
-    return Optional.of(key);
+    return Optional.of(key.getUsername());
   }
 }

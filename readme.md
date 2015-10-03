@@ -55,8 +55,10 @@ public class MyConfiguration implements ApiKeyBundleConfiguration {
 ```
 
 Now you can use API key based authentication in your application by declaring a method on a resource
-that has an `@Auth` annotated `ApiKey` parameter.  See the
-[Dropwizard Authentication][authentication] documentation for more details.
+that has an `@Auth` annotated `String` parameter.  See the
+[Dropwizard Authentication][authentication] documentation for more details.  The passed in parameter
+value will be the name of the application that made the request if the authentication process was
+successful.
 
 As far as configuration goes you can define your API keys in your application's config file.
 Assuming, like in the above example, you called your API key configuration element `authentication`

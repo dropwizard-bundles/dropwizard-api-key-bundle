@@ -31,7 +31,7 @@ public class ApiKeyBundleClientTest {
 
     @GET
     @Path("/secure")
-    public String secure(@Auth ApiKey key) {
+    public String secure(@Auth String application) {
       return "secure";
     }
   }
@@ -55,7 +55,7 @@ public class ApiKeyBundleClientTest {
   @Rule
   public final ResourceTestRule resources = ResourceTestRule.builder()
       .setTestContainerFactory(new GrizzlyWebTestContainerFactory())
-      .addProvider(AuthFactory.binder(new BasicAuthFactory<>(authenticator, "realm", ApiKey.class)))
+      .addProvider(AuthFactory.binder(new BasicAuthFactory<>(authenticator, "realm", String.class)))
       .addResource(new TestResource())
       .build();
 

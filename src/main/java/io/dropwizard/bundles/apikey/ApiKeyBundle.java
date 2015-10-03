@@ -19,6 +19,7 @@ import static com.google.common.base.Preconditions.checkState;
  * An API key bundle that allows you to configure a set of users/applications that are allowed to
  * access APIs of the application in the Dropwizard configuration file.
  */
+@SuppressWarnings("UnusedDeclaration")
 public class ApiKeyBundle<T extends ApiKeyBundleConfiguration> implements ConfiguredBundle<T> {
   @Override
   public void initialize(Bootstrap<?> bootstrap) {
@@ -31,13 +32,13 @@ public class ApiKeyBundle<T extends ApiKeyBundleConfiguration> implements Config
     Optional<AuthConfiguration> basic = configuration.getBasicConfiguration();
     checkState(basic.isPresent(), "A basic-http configuration option must be specified");
 
-    AuthFactory<?, ApiKey> factory = createBasicAuthFactory(basic.get(), environment.metrics());
+    AuthFactory<?, String> factory = createBasicAuthFactory(basic.get(), environment.metrics());
     environment.jersey().register(AuthFactory.binder(factory));
   }
 
-  private BasicAuthFactory<ApiKey> createBasicAuthFactory(AuthConfiguration config,
+  private BasicAuthFactory<String> createBasicAuthFactory(AuthConfiguration config,
                                                           MetricRegistry metrics) {
-    Authenticator<BasicCredentials, ApiKey> authenticator = createAuthenticator(config);
+    Authenticator<BasicCredentials, String> authenticator = createAuthenticator(config);
 
     Optional<String> cacheSpec = config.getCacheSpec();
     if (cacheSpec.isPresent()) {
@@ -45,10 +46,10 @@ public class ApiKeyBundle<T extends ApiKeyBundleConfiguration> implements Config
       authenticator = new CachingAuthenticator<>(metrics, authenticator, spec);
     }
 
-    return new BasicAuthFactory<>(authenticator, config.getRealm(), ApiKey.class);
+    return new BasicAuthFactory<>(authenticator, config.getRealm(), String.class);
   }
 
-  private Authenticator<BasicCredentials, ApiKey> createAuthenticator(AuthConfiguration config) {
+  private Authenticator<BasicCredentials, String> createAuthenticator(AuthConfiguration config) {
     Map<String, ApiKey> keys = config.getApiKeys();
     return new BasicCredentialsAuthenticator(keys::get);
   }
