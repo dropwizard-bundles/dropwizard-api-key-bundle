@@ -1,9 +1,9 @@
 package io.dropwizard.bundles.apikey;
 
-import static com.google.common.base.Preconditions.checkNotNull;
+import java.util.Base64;
 import retrofit.RequestInterceptor;
 
-import java.util.Base64;
+import static com.google.common.base.Preconditions.checkNotNull;
 
 public final class ApiKeyInterceptor implements RequestInterceptor {
   private final String authorization;
