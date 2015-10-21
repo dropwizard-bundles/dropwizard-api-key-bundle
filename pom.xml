@@ -52,6 +52,7 @@
     <jersey.version>2.21</jersey.version>
     <junit.version>4.12</junit.version>
     <mockito.version>1.10.17</mockito.version>
+    <retrofit.version>1.9.0</retrofit.version>
   </properties>
 
   <build>
@@ -143,6 +144,13 @@
           <artifactId>junit</artifactId>
         </exclusion>
       </exclusions>
+    </dependency>
+
+    <!-- Retrofit -->
+    <dependency>
+      <groupId>com.squareup.retrofit</groupId>
+      <artifactId>retrofit</artifactId>
+      <version>${retrofit.version}</version>
     </dependency>
 
     <!-- JUnit -->

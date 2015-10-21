@@ -67,7 +67,7 @@ then you can use a config file like this:
 ```yaml
 authentication:
   basic-http:
-    cache-spec: maximumSize=1000, expireAfterAccess=10m
+    cacheSpec: maximumSize=1000, expireAfterAccess=10m
     realm: MyApplication
     keys:
       application-1: api-key-1
