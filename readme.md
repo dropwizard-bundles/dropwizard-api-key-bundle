@@ -75,4 +75,4 @@ authentication:
 ```
 
 [dropwizard]: http://dropwizard.io
-[authentication]: http://www.dropwizard.io/0.8.4/docs/manual/auth.html
+[authentication]: http://www.dropwizard.io/0.8.5/docs/manual/auth.html
