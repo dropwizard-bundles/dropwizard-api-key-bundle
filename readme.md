@@ -19,7 +19,7 @@ Just add this maven dependency to get started:
 </dependency>
 ```
 
-Add the bundle to your environment using your choice of version supplier:
+Add the bundle to your environment:
 
 ```java
 public class MyApplication extends Application<MyConfiguration> {
@@ -75,4 +75,4 @@ authentication:
 ```
 
 [dropwizard]: http://dropwizard.io
-[authentication]: http://www.dropwizard.io/manual/auth.html
+[authentication]: http://www.dropwizard.io/0.8.4/docs/manual/auth.html
