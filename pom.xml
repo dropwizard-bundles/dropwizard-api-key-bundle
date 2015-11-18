@@ -10,7 +10,7 @@
 
   <groupId>io.dropwizard-bundles</groupId>
   <artifactId>dropwizard-api-key-bundle</artifactId>
-  <version>0.8.5-1-SNAPSHOT</version>  <!-- Make sure to keep this in sync with the dropwizard version below. -->
+  <version>0.9.1-1-SNAPSHOT</version>  <!-- Make sure to keep this in sync with the dropwizard version below. -->
   <packaging>jar</packaging>
 
   <name>dropwizard-api-key-bundle</name>
@@ -48,10 +48,10 @@
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 
-    <dropwizard.version>0.8.5</dropwizard.version>
-    <jersey.version>2.21</jersey.version>
+    <dropwizard.version>0.9.1</dropwizard.version>
+    <jersey.version>2.22.1</jersey.version>
     <junit.version>4.12</junit.version>
-    <mockito.version>1.10.17</mockito.version>
+    <mockito.version>1.10.19</mockito.version>
   </properties>
 
   <build>

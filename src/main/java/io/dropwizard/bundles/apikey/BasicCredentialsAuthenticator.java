@@ -4,21 +4,25 @@ import com.google.common.base.Optional;
 import io.dropwizard.auth.AuthenticationException;
 import io.dropwizard.auth.Authenticator;
 import io.dropwizard.auth.basic.BasicCredentials;
+import java.security.Principal;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * An Authenticator that converts HTTP basic authentication credentials into an API key.
  */
-public class BasicCredentialsAuthenticator implements Authenticator<BasicCredentials, String> {
+public class BasicCredentialsAuthenticator<P extends Principal>
+    implements Authenticator<BasicCredentials, P> {
   private final ApiKeyProvider provider;
+  private final PrincipalFactory<P> factory;
 
-  BasicCredentialsAuthenticator(ApiKeyProvider provider) {
+  BasicCredentialsAuthenticator(ApiKeyProvider provider, PrincipalFactory<P> factory) {
     this.provider = checkNotNull(provider);
+    this.factory = checkNotNull(factory);
   }
 
   @Override
-  public Optional<String> authenticate(BasicCredentials credentials)
+  public Optional<P> authenticate(BasicCredentials credentials)
       throws AuthenticationException {
     checkNotNull(credentials);
 
@@ -34,6 +38,6 @@ public class BasicCredentialsAuthenticator implements Authenticator<BasicCredent
       return Optional.absent();
     }
 
-    return Optional.of(key.getUsername());
+    return Optional.of(factory.create(key.getUsername()));
   }
 }
