@@ -16,7 +16,7 @@ Just add this maven dependency to get started:
 <dependency>
   <groupId>io.dropwizard-bundles</groupId>
   <artifactId>dropwizard-api-key-bundle</artifactId>
-  <version>0.9.1-1-SNAPSHOT</version>
+  <version>0.9.2-SNAPSHOT</version>
 </dependency>
 ```
 
@@ -105,4 +105,4 @@ authentication:
 ```
 
 [dropwizard]: http://dropwizard.io
-[authentication]: http://www.dropwizard.io/0.9.1/docs/manual/auth.html
+[authentication]: http://www.dropwizard.io/0.9.2/docs/manual/auth.html
