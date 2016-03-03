@@ -65,6 +65,9 @@ public class MyApplication extends Application<MyConfiguration> {
 }
 ```
 
+Additionally you can also pass an `UnauthorizedHandler` when creating the bundle, which is useful
+if you need to customize the unauthorized response (e.g. type or entity).
+
 You will also need to make your `MyConfiguration` class implement `ApiKeyBundleConfiguration` in
 order to provide the bundle with the necessary information it needs to know your API keys.
 

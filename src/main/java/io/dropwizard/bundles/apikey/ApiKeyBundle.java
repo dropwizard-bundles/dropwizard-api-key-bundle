@@ -9,6 +9,8 @@ import io.dropwizard.auth.AuthValueFactoryProvider;
 import io.dropwizard.auth.Authenticator;
 import io.dropwizard.auth.Authorizer;
 import io.dropwizard.auth.CachingAuthenticator;
+import io.dropwizard.auth.DefaultUnauthorizedHandler;
+import io.dropwizard.auth.UnauthorizedHandler;
 import io.dropwizard.auth.basic.BasicCredentialAuthFilter;
 import io.dropwizard.auth.basic.BasicCredentials;
 import io.dropwizard.setup.Bootstrap;
@@ -30,6 +32,7 @@ public class ApiKeyBundle<T extends ApiKeyBundleConfiguration, P extends Princip
   private final Class<P> principalClass;
   private final PrincipalFactory<P> factory;
   private final Authorizer<P> authorizer;
+  private final UnauthorizedHandler unauthorizedHandler;
 
   /**
    * Construct the ApiKeyBundle using the provided Principal class, PrincipalFactory and
@@ -41,9 +44,24 @@ public class ApiKeyBundle<T extends ApiKeyBundleConfiguration, P extends Princip
    */
   public ApiKeyBundle(Class<P> principalClass, PrincipalFactory<P> factory,
       Authorizer<P> authorizer) {
+    this(principalClass, factory, authorizer, new DefaultUnauthorizedHandler());
+  }
+
+  /**
+   * Construct the ApiKeyBundle using the provided Principal class, PrincipalFactory,
+   * Authorizer and UnauthorizedHandler.
+   *
+   * @param principalClass The class of the class extending the Principal type.
+   * @param factory The PrincipalFactory instance, which can create new P objects.
+   * @param authorizer The Authorizer instance, which can create new P objects.
+   * @param unauthorizedHandler The UnauthorizedHandler instance.
+   */
+  public ApiKeyBundle(Class<P> principalClass, PrincipalFactory<P> factory,
+      Authorizer<P> authorizer, UnauthorizedHandler unauthorizedHandler) {
     this.principalClass = checkNotNull(principalClass);
     this.factory = checkNotNull(factory);
     this.authorizer = checkNotNull(authorizer);
+    this.unauthorizedHandler = checkNotNull(unauthorizedHandler);
   }
 
   @Override
@@ -69,6 +87,7 @@ public class ApiKeyBundle<T extends ApiKeyBundleConfiguration, P extends Princip
             .setAuthenticator(createAuthenticator(config, metrics))
             .setRealm(config.getRealm())
             .setAuthorizer(authorizer)
+            .setUnauthorizedHandler(unauthorizedHandler)
             .buildAuthFilter();
     return authFilter;
   }
