@@ -1,9 +1,10 @@
 # dropwizard-api-key-bundle
 
 A [Dropwizard][dropwizard] bundle that provides a simple way to manage API keys for callers of
-your service.
+your service. The bundle provides support for authentication only; authorization is supported
+by optionally providing an `Authorizer` as documented below.
 
-[![Build Status](https://secure.travis-ci.org/dropwizard-bundles/dropwizard-api-key-bundle.png?branch=master)]
+[![Build Status](https://secure.travis-ci.org/dropwizard-bundles/dropwizard-api-key-bundle.png?branch=dropwizard-0.9)]
 (http://travis-ci.org/dropwizard-bundles/dropwizard-api-key-bundle)
 
 
@@ -15,17 +16,18 @@ Just add this maven dependency to get started:
 <dependency>
   <groupId>io.dropwizard-bundles</groupId>
   <artifactId>dropwizard-api-key-bundle</artifactId>
-  <version>0.8.4-1</version>
+  <version>0.9.2-SNAPSHOT</version>
 </dependency>
 ```
 
-Add the bundle to your environment:
+If you only need authentication and a default `Principal` implementation add the default
+version of the bundle to your environment:
 
 ```java
 public class MyApplication extends Application<MyConfiguration> {
   @Override
   public void initialize(Bootstrap<MyConfiguration> bootstrap) {
-    bootstrap.addBundle(new ApiKeyBundle<>());
+    bootstrap.addBundle(new DefaultApiKeyBundle<>());
   }
 
   @Override
@@ -34,6 +36,37 @@ public class MyApplication extends Application<MyConfiguration> {
   }
 }
 ```
+
+If you need to provide an `Authorizer` or a different `Principal` (extending type), or both,
+add the bundle to your environment and provide the type extending the `Principal` interface, an
+implementation of the `Authorizer` and `PrincipalFactory` as appropriate:
+
+```java
+public class MyApplication extends Application<MyConfiguration> {
+  @Override
+  public void initialize(Bootstrap<MyConfiguration> bootstrap) {
+    bootstrap.addBundle(new ApiKeyBundle<>(User.class, new PrincipalFactory<User>() {
+      @Override
+      public User create(String name) {
+        // Do something interesting...
+        return new User(name);
+      }}, new Authorizer<User>() {
+        @Override
+        public boolean authorize(User user, String role) {
+          return user.getName().equals("application-1") && role.equals("ADMIN");
+        }
+    });
+  }
+
+  @Override
+  public void run(MyConfiguration cfg, Environment env) throws Exception {
+    // ...
+  }
+}
+```
+
+Additionally you can also pass an `UnauthorizedHandler` when creating the bundle, which is useful
+if you need to customize the unauthorized response (e.g. type or entity).
 
 You will also need to make your `MyConfiguration` class implement `ApiKeyBundleConfiguration` in
 order to provide the bundle with the necessary information it needs to know your API keys.
@@ -55,9 +88,9 @@ public class MyConfiguration implements ApiKeyBundleConfiguration {
 ```
 
 Now you can use API key based authentication in your application by declaring a method on a resource
-that has an `@Auth` annotated `String` parameter.  See the
-[Dropwizard Authentication][authentication] documentation for more details.  The passed in parameter
-value will be the name of the application that made the request if the authentication process was
+that has an `@Auth` annotated `Principal` parameter (or an extending type).  See the
+[Dropwizard Authentication][authentication] documentation for more details.  The name of the `Principal`
+will be the name of the application that made the request if the authentication process was
 successful.
 
 As far as configuration goes you can define your API keys in your application's config file.
@@ -75,4 +108,4 @@ authentication:
 ```
 
 [dropwizard]: http://dropwizard.io
-[authentication]: http://www.dropwizard.io/0.8.5/docs/manual/auth.html
+[authentication]: http://www.dropwizard.io/0.9.2/docs/manual/auth.html

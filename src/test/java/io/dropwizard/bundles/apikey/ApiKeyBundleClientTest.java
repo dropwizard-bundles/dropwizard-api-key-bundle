@@ -1,9 +1,12 @@
 package io.dropwizard.bundles.apikey;
 
 import io.dropwizard.auth.Auth;
-import io.dropwizard.auth.AuthFactory;
-import io.dropwizard.auth.basic.BasicAuthFactory;
+import io.dropwizard.auth.AuthDynamicFeature;
+import io.dropwizard.auth.AuthValueFactoryProvider;
+import io.dropwizard.auth.PermitAllAuthorizer;
+import io.dropwizard.auth.basic.BasicCredentialAuthFilter;
 import io.dropwizard.testing.junit.ResourceTestRule;
+import java.security.Principal;
 import java.util.Base64;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
@@ -31,7 +34,7 @@ public class ApiKeyBundleClientTest {
 
     @GET
     @Path("/secure")
-    public String secure(@Auth String application) {
+    public String secure(@Auth Principal application) {
       return "secure";
     }
   }
@@ -49,13 +52,21 @@ public class ApiKeyBundleClientTest {
     }
   };
 
-  private final BasicCredentialsAuthenticator authenticator =
-      new BasicCredentialsAuthenticator(provider);
+  private final BasicCredentialsAuthenticator<Principal> authenticator =
+      new BasicCredentialsAuthenticator<>(provider, new DefaultPrincipalFactory());
+
+  private BasicCredentialAuthFilter<Principal> authFilter =
+      new BasicCredentialAuthFilter.Builder<Principal>()
+          .setAuthenticator(authenticator)
+          .setRealm("realm")
+          .setAuthorizer(new PermitAllAuthorizer<Principal>())
+          .buildAuthFilter();
 
   @Rule
   public final ResourceTestRule resources = ResourceTestRule.builder()
       .setTestContainerFactory(new GrizzlyWebTestContainerFactory())
-      .addProvider(AuthFactory.binder(new BasicAuthFactory<>(authenticator, "realm", String.class)))
+      .addProvider(new AuthDynamicFeature(authFilter))
+      .addProvider(new AuthValueFactoryProvider.Binder<>(Principal.class))
       .addResource(new TestResource())
       .build();
 
