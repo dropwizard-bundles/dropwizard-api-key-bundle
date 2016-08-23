@@ -1,0 +1,8 @@
+cache-spec: "maximumSize=1000, expireAfterAccess=10m"
+realm: Authentication
+keys:
+  client: secret
+roles:
+  client:
+    - admin
+    - user
