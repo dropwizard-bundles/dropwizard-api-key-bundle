@@ -1,8 +1,9 @@
 package io.dropwizard.bundles.apikey;
 
-import com.google.common.base.Optional;
 import io.dropwizard.auth.AuthenticationException;
 import io.dropwizard.auth.basic.BasicCredentials;
+import java.security.Principal;
+import java.util.Optional;
 import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;
@@ -13,11 +14,17 @@ import static org.mockito.Mockito.when;
 
 public class BasicCredentialsAuthenticatorTest {
   private final ApiKeyProvider provider = mock(ApiKeyProvider.class);
-  private final BasicCredentialsAuthenticator auth = new BasicCredentialsAuthenticator(provider);
+  private final BasicCredentialsAuthenticator<Principal> auth =
+      new BasicCredentialsAuthenticator<>(provider, new DefaultPrincipalFactory());
 
   @Test(expected = NullPointerException.class)
   public void testNullProvider() {
-    new BasicCredentialsAuthenticator(null);
+    new BasicCredentialsAuthenticator<>(null, new DefaultPrincipalFactory());
+  }
+
+  @Test(expected = NullPointerException.class)
+  public void testNullFactory() {
+    new BasicCredentialsAuthenticator<>(provider, null);
   }
 
   @Test
@@ -26,9 +33,9 @@ public class BasicCredentialsAuthenticatorTest {
     when(provider.get("username")).thenReturn(key);
 
     BasicCredentials credentials = new BasicCredentials("username", "secret");
-    Optional<String> actual = auth.authenticate(credentials);
+    Optional<Principal> actual = auth.authenticate(credentials);
     assertTrue(actual.isPresent());
-    assertEquals("username", actual.get());
+    assertEquals("username", actual.get().getName());
   }
 
   @Test
@@ -37,7 +44,7 @@ public class BasicCredentialsAuthenticatorTest {
     when(provider.get("username")).thenReturn(key);
 
     BasicCredentials credentials = new BasicCredentials("username", "secret");
-    Optional<String> actual = auth.authenticate(credentials);
+    Optional<Principal> actual = auth.authenticate(credentials);
     assertFalse(actual.isPresent());
   }
 
@@ -46,7 +53,7 @@ public class BasicCredentialsAuthenticatorTest {
     when(provider.get("username")).thenReturn(null);
 
     BasicCredentials credentials = new BasicCredentials("username", "secret");
-    Optional<String> actual = auth.authenticate(credentials);
+    Optional<Principal> actual = auth.authenticate(credentials);
     assertFalse(actual.isPresent());
   }
 

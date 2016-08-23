@@ -1,10 +1,14 @@
 package io.dropwizard.bundles.apikey;
 
+import com.google.common.collect.ImmutableSetMultimap;
 import io.dropwizard.auth.Auth;
-import io.dropwizard.auth.AuthFactory;
-import io.dropwizard.auth.basic.BasicAuthFactory;
+import io.dropwizard.auth.AuthDynamicFeature;
+import io.dropwizard.auth.AuthValueFactoryProvider;
+import io.dropwizard.auth.basic.BasicCredentialAuthFilter;
 import io.dropwizard.testing.junit.ResourceTestRule;
+import java.security.Principal;
 import java.util.Base64;
+import javax.annotation.security.RolesAllowed;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
@@ -12,6 +16,7 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+import org.glassfish.jersey.server.filter.RolesAllowedDynamicFeature;
 import org.glassfish.jersey.test.grizzly.GrizzlyWebTestContainerFactory;
 import org.junit.Rule;
 import org.junit.Test;
@@ -31,31 +36,53 @@ public class ApiKeyBundleClientTest {
 
     @GET
     @Path("/secure")
-    public String secure(@Auth String application) {
+    public String secure(@Auth Principal application) {
       return "secure";
+    }
+
+    @GET
+    @Path("/authorized")
+    @RolesAllowed("admin")
+    public String authorized(@Auth Principal application) {
+      return "scope";
     }
   }
 
   private static final ApiKeyProvider provider = new ApiKeyProvider() {
     private final ApiKey KEY = new ApiKey("username", "secret");
+    private final ApiKey UNAUTHORIZED = new ApiKey("unauthorized", "secret");
 
     @Override
     public ApiKey get(String username) {
       if ("username".equals(username)) {
         return KEY;
+      } else if ("unauthorized".equals(username)) {
+        return UNAUTHORIZED;
       }
 
       return null;
     }
   };
 
-  private final BasicCredentialsAuthenticator authenticator =
-      new BasicCredentialsAuthenticator(provider);
+  private final BasicCredentialsAuthenticator<Principal> authenticator =
+      new BasicCredentialsAuthenticator<>(provider, new DefaultPrincipalFactory());
+
+  private final RoleAuthorizer<Principal> authorizer
+      = new RoleAuthorizer<>(ImmutableSetMultimap.of("username", "admin"));
+
+  private BasicCredentialAuthFilter<Principal> authFilter =
+      new BasicCredentialAuthFilter.Builder<>()
+          .setAuthenticator(authenticator)
+          .setRealm("realm")
+          .setAuthorizer(authorizer)
+          .buildAuthFilter();
 
   @Rule
   public final ResourceTestRule resources = ResourceTestRule.builder()
       .setTestContainerFactory(new GrizzlyWebTestContainerFactory())
-      .addProvider(AuthFactory.binder(new BasicAuthFactory<>(authenticator, "realm", String.class)))
+      .addProvider(new AuthDynamicFeature(authFilter))
+      .addProvider(new AuthValueFactoryProvider.Binder<>(Principal.class))
+      .addProvider(RolesAllowedDynamicFeature.class)
       .addResource(new TestResource())
       .build();
 
@@ -122,6 +149,28 @@ public class ApiKeyBundleClientTest {
         .get();
 
     assertEquals(Response.Status.UNAUTHORIZED.getStatusCode(), response.getStatus());
+  }
+
+  @Test
+  public void testAuthorizedWithAuthorizedBasicAuthHeaders() {
+    Response response = resources.getJerseyTest()
+        .target("/test/authorized")
+        .request()
+        .header(HttpHeaders.AUTHORIZATION, token("username", "secret"))
+        .get();
+
+    assertEquals(Response.Status.OK.getStatusCode(), response.getStatus());
+  }
+
+  @Test
+  public void testAuthorizedWithUnauthorizedBasicAuthHeaders() {
+    Response response = resources.getJerseyTest()
+        .target("/test/authorized")
+        .request()
+        .header(HttpHeaders.AUTHORIZATION, token("unauthorized", "secret"))
+        .get();
+
+    assertEquals(Response.Status.FORBIDDEN.getStatusCode(), response.getStatus());
   }
 
   private static String token(String username, String secret) {

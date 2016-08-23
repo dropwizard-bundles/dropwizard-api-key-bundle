@@ -2,7 +2,7 @@ package io.dropwizard.bundles.apikey;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.google.common.base.Optional;
+import java.util.Optional;
 
 public class ApiKeyConfiguration {
   private final AuthConfiguration basicConfiguration;
@@ -17,6 +17,6 @@ public class ApiKeyConfiguration {
    */
   @JsonProperty("basic-http")
   public Optional<AuthConfiguration> getBasicConfiguration() {
-    return Optional.fromNullable(basicConfiguration);
+    return Optional.ofNullable(basicConfiguration);
   }
 }
