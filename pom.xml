@@ -10,7 +10,7 @@
 
   <groupId>com.getconvey.oss</groupId>
   <artifactId>dropwizard-api-key-bundle</artifactId>
-  <version>1.0.0</version>  <!-- Make sure to keep this in sync with the dropwizard version below. -->
+  <version>1.0.1-SNAPSHOT</version>  <!-- Make sure to keep this in sync with the dropwizard version below. -->
   <packaging>jar</packaging>
 
   <name>dropwizard-api-key-bundle</name>
@@ -28,7 +28,7 @@
     <url>http://github.com/getconvey/dropwizard-api-key-bundle</url>
     <connection>scm:git:git@github.com:getconvey/dropwizard-api-key-bundle.git</connection>
     <developerConnection>scm:git:git@github.com:getconvey/dropwizard-api-key-bundle.git</developerConnection>
-    <tag>v1.0.0</tag>
+    <tag>HEAD</tag>
   </scm>
 
   <developers>
