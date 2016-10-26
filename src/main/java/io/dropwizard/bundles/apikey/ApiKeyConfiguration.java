@@ -5,11 +5,23 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.Optional;
 
 public class ApiKeyConfiguration {
+  private final String cacheSpec;
   private final AuthConfiguration basicConfiguration;
 
   @JsonCreator
-  ApiKeyConfiguration(@JsonProperty("basic-http") AuthConfiguration basicConfiguration) {
+  ApiKeyConfiguration(
+      @JsonProperty("cache-spec") String cacheSpec,
+      @JsonProperty("basic-http") AuthConfiguration basicConfiguration) {
+    this.cacheSpec = cacheSpec;
     this.basicConfiguration = basicConfiguration;
+  }
+
+  /**
+   * The configuration for how API keys should be cached.  Can be missing.
+   */
+  @JsonProperty("cache-spec")
+  public Optional<String> getCacheSpec() {
+    return Optional.ofNullable(cacheSpec);
   }
 
   /**

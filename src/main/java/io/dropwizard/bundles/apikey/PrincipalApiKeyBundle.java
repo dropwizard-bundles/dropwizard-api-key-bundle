@@ -2,6 +2,7 @@ package io.dropwizard.bundles.apikey;
 
 import com.codahale.metrics.MetricRegistry;
 import com.google.common.cache.CacheBuilderSpec;
+import com.google.common.collect.Multimap;
 import io.dropwizard.ConfiguredBundle;
 import io.dropwizard.auth.AuthDynamicFeature;
 import io.dropwizard.auth.AuthValueFactoryProvider;
@@ -21,7 +22,6 @@ import java.util.Optional;
 import javax.annotation.Nullable;
 
 import static com.google.common.base.Preconditions.checkNotNull;
-import static com.google.common.base.Preconditions.checkState;
 
 /**
  * An API key bundle that allows you to configure a set of users/applications that are allowed to
@@ -72,42 +72,52 @@ public class PrincipalApiKeyBundle<T extends ApiKeyBundleConfiguration, P extend
   public void run(T bundleConfiguration, Environment environment) throws Exception {
     ApiKeyConfiguration configuration = bundleConfiguration.getApiKeyConfiguration();
 
-    Optional<AuthConfiguration> basic = configuration.getBasicConfiguration();
-    checkState(basic.isPresent(), "A basic-http configuration option must be specified");
 
-    environment.jersey().register(new AuthDynamicFeature(
-        createBasicCredentialAuthFilter(basic.get(), environment.metrics())));
+    Optional<AuthConfiguration> basicOpt = configuration.getBasicConfiguration();
+    if (!basicOpt.isPresent()) {
+      throw new IllegalStateException("A basic-http configuration option must be specified");
+    }
+    AuthConfiguration basic = basicOpt.get();
+
+    final Multimap<String, String> roles = bundleConfiguration
+        .getAuthorizationConfiguration().getRoles();
+
+    final String cacheSpec = configuration.getCacheSpec().orElse(null);
+
+    final BasicCredentialAuthFilter<P> authFilter = new BasicCredentialAuthFilter.Builder<P>()
+        .setAuthenticator(createAuthenticator(cacheSpec, basic, environment.metrics()))
+        .setRealm(basic.getRealm())
+        .setAuthorizer(createAuthorizer(roles))
+        .setUnauthorizedHandler(unauthorizedHandler)
+        .buildAuthFilter();
+
+    environment.jersey().register(new AuthDynamicFeature(authFilter));
     environment.jersey().register(new AuthValueFactoryProvider.Binder<>(principalClass));
   }
 
-  private BasicCredentialAuthFilter<P> createBasicCredentialAuthFilter(
-      AuthConfiguration config,
-      MetricRegistry metrics) {
+  private Authorizer<P> createAuthorizer(Multimap<String, String> roles) {
     final Authorizer<P> authorizer;
     if (this.authorizer != null) {
       authorizer = this.authorizer;
-    } else if (!config.getRoles().isEmpty()) {
-      authorizer = new RoleAuthorizer<>(config.getRoles());
+    } else if (!roles.isEmpty()) {
+      authorizer = new RoleAuthorizer<>(roles);
     } else {
       authorizer = new PermitAllAuthorizer<>();
     }
-
-    return new BasicCredentialAuthFilter.Builder<P>()
-        .setAuthenticator(createAuthenticator(config, metrics))
-        .setRealm(config.getRealm())
-        .setAuthorizer(authorizer)
-        .setUnauthorizedHandler(unauthorizedHandler)
-        .buildAuthFilter();
+    return authorizer;
   }
 
-  private Authenticator<BasicCredentials, P> createAuthenticator(AuthConfiguration config,
-                                                                 MetricRegistry metrics) {
+  private Authenticator<BasicCredentials, P> createAuthenticator(
+      String cacheSpec, AuthConfiguration config,
+      MetricRegistry metrics) {
     Map<String, ApiKey> keys = config.getApiKeys();
-    Authenticator<BasicCredentials, P> authenticator =
+    final Authenticator<BasicCredentials, P> authenticator =
         new BasicCredentialsAuthenticator<>(keys::get, factory);
 
-    final Optional<Authenticator<BasicCredentials, P>> auth = config.getCacheSpec()
-        .map(s -> new CachingAuthenticator<>(metrics, authenticator, CacheBuilderSpec.parse(s)));
-    return auth.orElse(authenticator);
+    if (cacheSpec != null) {
+      return new CachingAuthenticator<>(metrics, authenticator, CacheBuilderSpec.parse(cacheSpec));
+    } else {
+      return authenticator;
+    }
   }
 }
