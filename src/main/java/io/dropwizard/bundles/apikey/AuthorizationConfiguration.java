@@ -5,7 +5,7 @@ import com.google.common.collect.ImmutableSetMultimap;
 import com.google.common.collect.Multimap;
 
 /**
- *
+ * Configuration for mapping between roles and API keys.
  */
 public class AuthorizationConfiguration {
 
